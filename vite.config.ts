@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      'util': '/src/polyfills/util.js'
+      'util': 'src/polyfills/util.js'
     }
   },
   optimizeDeps: {
