@@ -70,7 +70,7 @@ export interface SecureSession {
   riskScore: number;
 }
 
-export interface FraudDetectionResult {
+export interface SecurityError extends Error {
   riskScore: number;
   flags: string[];
   recommendations: string[];
