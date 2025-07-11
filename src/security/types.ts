@@ -68,13 +68,6 @@ export interface SecureSession {
   permissions: string[];
   mfaVerified: boolean;
   riskScore: number;
-}
-
-export interface SecurityError extends Error {
-  riskScore: number;
-  flags: string[];
-  recommendations: string[];
-  blocked: boolean;
   confidence: number;
 }
 
@@ -104,7 +97,12 @@ export interface ValidationRule {
   pattern?: RegExp;
 }
 
-export interface SecurityError extends Error {
+export class SecurityError extends Error {
+  public riskScore: number;
+  public flags: string[];
+  public recommendations: string[];
+  public blocked: boolean;
+  public confidence: number;
   code: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   userMessage: string;
@@ -113,4 +111,19 @@ export interface SecurityError extends Error {
   timestamp: number;
   userId?: string;
   sessionId?: string;
+
+  constructor(
+    message: string,
+    code: string = 'SECURITY_ERROR',
+    severity: 'low' | 'medium' | 'high' | 'critical' = 'medium'
+  ) {
+    super(message);
+    this.name = 'SecurityError';
+    this.code = code;
+    this.severity = severity;
+    this.userMessage = message;
+    this.internalMessage = message;
+    this.context = {};
+    this.timestamp = Date.now();
+  }
 }
