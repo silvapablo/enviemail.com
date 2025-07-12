@@ -11,7 +11,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "deploy": "./deploy.sh",
+    "deploy:update": "./deploy-update.sh"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
