@@ -3,18 +3,17 @@ import { Mail, Shield, Coins, Menu, X } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { NotificationCenter } from '../security/NotificationCenter';
-import { useSecureStore } from '../../store/secureStore';
+import { useAuth } from '../../hooks/useAuth';
 import { useState } from 'react';
 
 interface HeaderProps {
   currentPage: string;
   onPageChange: (page: string) => void;
 }
-import { initializeMockUser } from '../../data/mockData';
 
 export const Header: React.FC<HeaderProps> = ({ currentPage, onPageChange }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, walletAddress, isAuthenticated, login, logout } = useSecureStore();
+  const { user, walletAddress, isAuthenticated, connectWallet, disconnect, isConnecting } = useAuth();
 
   const navigation = [
     { name: 'Dashboard', id: 'dashboard' },
@@ -26,20 +25,15 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onPageChange }) => 
   ];
 
   const handleConnect = async () => {
-    // Simulate wallet connection
-    const success = await login({
-      userId: 'user_123',
-      ipAddress: '127.0.0.1'
-    });
-    
-    if (success) {
-      // Initialize mock user data after successful login
-      initializeMockUser();
+    try {
+      await connectWallet();
+    } catch (error) {
+      console.error('Connection failed:', error);
     }
   };
 
   const handleDisconnect = () => {
-    logout();
+    disconnect();
   };
 
   return (
@@ -47,7 +41,10 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onPageChange }) => 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <div 
+            className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => onPageChange('landing')}
+          >
             <div className="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg">
               <Mail className="h-6 w-6 text-black" />
             </div>
@@ -82,10 +79,10 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onPageChange }) => 
               <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <p className="text-sm font-medium text-white">
-                    {user.tokenBalance.toLocaleString()} TRUST
+                    {user.trust_tokens.toLocaleString()} TRUST
                   </p>
                   <p className="text-xs text-gray-400">
-                    {(walletAddress || user.address).slice(0, 6)}...{(walletAddress || user.address).slice(-4)}
+                    {(walletAddress || user.wallet_address).slice(0, 6)}...{(walletAddress || user.wallet_address).slice(-4)}
                   </p>
                 </div>
                 <Badge variant="success" className="flex items-center space-x-1">
@@ -97,9 +94,13 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onPageChange }) => 
                 </Button>
               </div>
             ) : (
-              <Button onClick={handleConnect} className="flex items-center space-x-2">
+              <Button 
+                onClick={handleConnect} 
+                loading={isConnecting}
+                className="flex items-center space-x-2"
+              >
                 <Coins className="h-4 w-4" />
-                <span>Connect Wallet</span>
+                <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>
               </Button>
             )}
 
