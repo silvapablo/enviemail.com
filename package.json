@@ -16,7 +16,12 @@
     "deploy:update": "./deploy-update.sh"
   },
   "dependencies": {
+    "@supabase/auth-ui-react": "^0.4.7",
+    "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/supabase-js": "^2.50.5",
     "bcryptjs": "^3.0.2",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
     "crypto-js": "^4.2.0",
     "geoip-lite": "^1.4.10",
     "jsonwebtoken": "^9.0.2",
