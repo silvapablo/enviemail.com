@@ -150,14 +150,19 @@ export const MFASetup: React.FC = () => {
 
       {step === 'select' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card hover className="cursor-pointer" onClick={setupTOTP}>
+          <Card hover className="cursor-pointer">
             <div className="text-center p-6">
               <Smartphone className="h-12 w-12 text-blue-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">Authenticator App</h3>
               <p className="text-gray-400 text-sm mb-4">
                 Use Google Authenticator, Authy, or similar apps
               </p>
-              <Badge variant="info">Recommended</Badge>
+              <div className="space-y-2">
+                <Badge variant="info">Recommended</Badge>
+                <Button onClick={setupTOTP} size="sm" className="w-full">
+                  Setup Authenticator
+                </Button>
+              </div>
             </div>
           </Card>
 
