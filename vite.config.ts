@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { Buffer } from 'buffer'
 
 export default defineConfig({
   plugins: [react()],
   define: {
     global: 'globalThis',
+    Buffer: Buffer,
   },
   resolve: {
     alias: {
@@ -12,6 +14,8 @@ export default defineConfig({
       stream: "stream-browserify",
       zlib: "browserify-zlib",
       util: './src/polyfills/util.js',
+      crypto: "crypto-browserify",
+      buffer: "buffer",
     }
   },
   build: {
@@ -33,7 +37,9 @@ export default defineConfig({
       'ethers', 
       '@supabase/supabase-js',
       'crypto-js',
-      'process'
+      'process',
+      'crypto-browserify',
+      'buffer'
     ]
   },
   server: {
