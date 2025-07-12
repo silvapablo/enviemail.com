@@ -381,5 +381,5 @@ export class PerformanceMonitor {
 
 // Export singleton instance
 export const performanceMonitor = new PerformanceMonitor({
-  endpoint: process.env.REACT_APP_MONITORING_ENDPOINT
+  endpoint: import.meta.env.VITE_MONITORING_ENDPOINT
 })
