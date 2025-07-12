@@ -128,10 +128,11 @@ export class DatabaseService {
       .from('users')
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
     
-    if (error && error.code !== 'PGRST116') {
-      throw new Error(`Failed to get user: ${error.message}`)
+    if (error) {
+      console.error('Error fetching user:', error)
+      throw error
     }
     return data
   }
