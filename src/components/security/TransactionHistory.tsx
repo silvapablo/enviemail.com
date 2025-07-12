@@ -102,7 +102,6 @@ export const TransactionHistory: React.FC = () => {
     setFilteredTransactions(filtered);
   }, [transactions, searchTerm, statusFilter, typeFilter, sortBy, sortOrder]);
 
-  const getStatusIcon = (status: SecureTransaction['status']) => {
   const getStatusIcon = (status: Transaction['status']) => {
     switch (status) {
       case 'confirmed':
