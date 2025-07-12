@@ -212,6 +212,7 @@ export const Landing: React.FC<LandingProps> = ({ onGetStarted }) => {
               <Button
                 variant="outline"
                 size="lg"
+                onClick={onGetStarted}
                 className="text-lg px-8 py-4"
               >
                 <Award className="h-5 w-5 mr-2" />
