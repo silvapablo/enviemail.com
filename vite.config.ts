@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   define: {
     global: 'globalThis',
-    Buffer: ['buffer', 'Buffer'],
+    Buffer: 'Buffer',
   },
   resolve: {
     alias: {
