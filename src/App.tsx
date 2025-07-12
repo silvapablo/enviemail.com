@@ -8,44 +8,19 @@ import { Validation } from './pages/Validation';
 import { Staking } from './pages/Staking';
 import { Analytics } from './pages/Analytics';
 import { Security } from './pages/Security';
-import { useSecureStore } from './store/secureStore';
-import { dbManager } from './database/indexedDBManager';
-import { performanceMonitor } from './monitoring/performanceMonitor';
-import { useRealTimeData } from './hooks/useRealTimeData';
-import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
+import { useAuth } from './hooks/useAuth';
+import { useData } from './hooks/useData';
 
 function App() {
-  const { currentPage, setCurrentPage, validateSession, user } = useSecureStore();
-  
-  // Initialize real-time data connection
-  const { connectionState, latency } = useRealTimeData({
-    autoConnect: true,
-    reconnectOnError: true
-  });
-  
-  // Initialize performance monitoring
-  usePerformanceMonitoring();
+  const [currentPage, setCurrentPage] = useState('landing');
+  const { user, isAuthenticated } = useAuth();
+  const { refetch } = useData();
 
   useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        // Initialize IndexedDB
-        await dbManager.initialize();
-        
-        // Initialize performance monitoring
-        performanceMonitor.initialize();
-        
-        // Validate session
-        await validateSession();
-        
-        console.log('App initialized successfully');
-      } catch (error) {
-        console.error('App initialization failed:', error);
-      }
-    };
-    
-    initializeApp();
-  }, [validateSession]);
+    if (isAuthenticated && currentPage === 'landing') {
+      setCurrentPage('dashboard');
+    }
+  }, [isAuthenticated, currentPage]);
 
   const handleGetStarted = () => {
     setCurrentPage('dashboard');
