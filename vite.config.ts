@@ -39,7 +39,8 @@ export default defineConfig({
       'crypto-js',
       'process',
       'crypto-browserify',
-      'buffer'
+      'buffer',
+      'stream-browserify'
     ]
   },
   server: {
