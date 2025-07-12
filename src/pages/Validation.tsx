@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Shield, Award, TrendingUp } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { ValidationQueue } from '../components/validation/ValidationQueue';
+import { AIAssistedValidation } from '../validation/AIAssistedValidation';
 import { mockPendingValidations, mockUser } from '../data/mockData';
 
 export const Validation: React.FC = () => {
@@ -96,7 +96,7 @@ export const Validation: React.FC = () => {
         </Card>
       </div>
 
-      <ValidationQueue
+      <AIAssistedValidation
         validations={validations}
         onValidate={handleValidate}
       />
