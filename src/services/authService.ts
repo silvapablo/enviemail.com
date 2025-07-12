@@ -46,7 +46,7 @@ export class AuthService {
       }
 
       // Create Supabase-compatible email format
-      const supabaseEmail = `user-${address.toLowerCase().substring(2)}@emailchain.protocol`
+      const supabaseEmail = `user-${address.toLowerCase().substring(2)}@emailchain.xyz`
       
       // Authenticate with Supabase using formatted email
       const { error: signInError } = await supabase.auth.signInWithPassword({
