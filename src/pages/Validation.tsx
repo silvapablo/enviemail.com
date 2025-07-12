@@ -2,27 +2,45 @@ import React, { useState } from 'react';
 import { Shield, Award, TrendingUp } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { AIAssistedValidation } from '../validation/AIAssistedValidation';
-import { mockPendingValidations, mockUser } from '../data/mockData';
+import { AIAssistedValidation } from '../components/validation/AIAssistedValidation';
+import { useAuth } from '../hooks/useAuth';
+import { useData } from '../hooks/useData';
 
 export const Validation: React.FC = () => {
-  const [validations, setValidations] = useState(mockPendingValidations);
+  const { user } = useAuth();
+  const { pendingValidations, updateValidation } = useData();
 
-  const handleValidate = (id: string, isLegitimate: boolean) => {
-    setValidations(prev => prev.map(v => 
-      v.id === id 
-        ? { 
-            ...v, 
-            status: isLegitimate ? 'validated' : 'rejected' as const,
-            validatorVotes: {
-              ...v.validatorVotes,
-              [isLegitimate ? 'legitimate' : 'spam']: v.validatorVotes[isLegitimate ? 'legitimate' : 'spam'] + 1,
-              total: v.validatorVotes.total + 1
-            }
-          }
-        : v
-    ));
+  const handleValidate = async (id: string, isLegitimate: boolean) => {
+    if (!user) return;
+    
+    try {
+      await updateValidation(id, {
+        status: isLegitimate ? 'validated' : 'rejected',
+        validator_id: user.id,
+        human_verified: true,
+        validation_result: isLegitimate ? 'legitimate' : 'spam'
+      });
+    } catch (error) {
+      console.error('Validation failed:', error);
+    }
   };
+
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Email Validation</h1>
+          <p className="text-gray-400">Connect wallet to start validating emails</p>
+        </div>
+        <Card>
+          <div className="text-center py-8">
+            <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-400">Please connect your wallet to access validation features</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -44,11 +62,11 @@ export const Validation: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Stake:</span>
-              <span className="text-white">{mockUser.stakedBalance.toLocaleString()} TRUST</span>
+              <span className="text-white">{user.trust_tokens.toLocaleString()} TRUST</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Accuracy:</span>
-              <span className="text-green-400">{mockUser.validationAccuracy}%</span>
+              <span className="text-green-400">{user.validation_accuracy?.toFixed(1) || 0}%</span>
             </div>
           </div>
         </Card>
@@ -61,7 +79,7 @@ export const Validation: React.FC = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-400">Validations:</span>
-              <span className="text-white">2,847</span>
+              <span className="text-white">{user.total_campaigns || 0}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">This Week:</span>
@@ -82,7 +100,7 @@ export const Validation: React.FC = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-400">Total Earned:</span>
-              <span className="text-white">12,450 TRUST</span>
+              <span className="text-white">0 TRUST</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">This Week:</span>
@@ -97,7 +115,7 @@ export const Validation: React.FC = () => {
       </div>
 
       <AIAssistedValidation
-        validations={validations}
+        validations={pendingValidations}
         onValidate={handleValidate}
       />
     </div>

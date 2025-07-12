@@ -1,9 +1,19 @@
 import React from 'react';
 import { TrendingUp } from 'lucide-react';
 import { Card } from '../ui/Card';
-import { mockReputationHistory } from '../../data/mockData';
 
 export const ReputationChart: React.FC = () => {
+  // Define reputation history locally
+  const mockReputationHistory = [
+    { date: '2024-01-01', score: 850, change: 25 },
+    { date: '2024-01-02', score: 875, change: 30 },
+    { date: '2024-01-03', score: 905, change: 15 },
+    { date: '2024-01-04', score: 920, change: -5 },
+    { date: '2024-01-05', score: 915, change: 40 },
+    { date: '2024-01-06', score: 955, change: 20 },
+    { date: '2024-01-07', score: 975, change: 25 }
+  ];
+  
   const maxScore = Math.max(...mockReputationHistory.map(h => h.score));
   const minScore = Math.min(...mockReputationHistory.map(h => h.score));
   const range = maxScore - minScore;

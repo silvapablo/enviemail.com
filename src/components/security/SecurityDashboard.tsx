@@ -3,10 +3,18 @@ import { Shield, AlertTriangle, CheckCircle, Eye, Lock, Zap } from 'lucide-react
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { ProgressBar } from '../ui/ProgressBar';
-import { useSecureStore } from '../../store/secureStore';
+import { useAuth } from '../../hooks/useAuth';
+import { useData } from '../../hooks/useData';
 
 export const SecurityDashboard: React.FC = () => {
-  const { user, riskScore, sessionId, securityConfig, transactions } = useSecureStore();
+  const { user } = useAuth();
+  const { stats } = useData();
+  
+  // Placeholder values until security system is properly integrated
+  const riskScore = 25;
+  const sessionId = 'session-123';
+  const securityConfig = { mfaEnabled: false };
+  const transactions: any[] = [];
 
   const getSecurityLevel = (score: number) => {
     if (score <= 20) return { level: 'Excellent', color: 'text-green-400', variant: 'success' as const };

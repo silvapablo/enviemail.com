@@ -3,16 +3,34 @@ import { Calculator, Lock, TrendingUp } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { stakingOptions, calculateStakingRewards, mockUser } from '../../data/mockData';
+import { useAuth } from '../../hooks/useAuth';
 
 export const StakingCalculator: React.FC = () => {
+  const { user } = useAuth();
+  
+  // Define staking options locally
+  const stakingOptions = [
+    { duration: 3, apy: 12, lockPeriod: '3 months' },
+    { duration: 6, apy: 15, lockPeriod: '6 months' },
+    { duration: 12, apy: 18.5, lockPeriod: '12 months' },
+    { duration: 24, apy: 22, lockPeriod: '24 months' }
+  ];
+  
+  // Define calculation function locally
+  const calculateStakingRewards = (amount: number, duration: number, reputation: number) => {
+    const baseApy = stakingOptions.find(opt => opt.duration === duration)?.apy || 12;
+    const reputationBonus = Math.floor(reputation / 1000) * 2;
+    const totalApy = baseApy + reputationBonus;
+    return (amount * totalApy) / 100;
+  };
+  
   const [amount, setAmount] = useState('10000');
   const [duration, setDuration] = useState(12);
   const [isStaking, setIsStaking] = useState(false);
 
   const selectedOption = stakingOptions.find(opt => opt.duration === duration);
   const stakingAmount = parseFloat(amount) || 0;
-  const annualRewards = calculateStakingRewards(stakingAmount, duration, mockUser.reputation);
+  const annualRewards = calculateStakingRewards(stakingAmount, duration, user?.reputation_score || 0);
   const totalRewards = annualRewards * (duration / 12);
 
   const handleStake = () => {
@@ -47,7 +65,7 @@ export const StakingCalculator: React.FC = () => {
               step="100"
             />
             <div className="text-sm text-gray-400 mt-1">
-              Available: {mockUser.tokenBalance.toLocaleString()} TRUST
+              Available: {user?.trust_tokens?.toLocaleString() || '0'} TRUST
             </div>
           </div>
 
@@ -97,12 +115,12 @@ export const StakingCalculator: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Reputation Bonus:</span>
-                  <span className="text-green-400">+{Math.floor(mockUser.reputation / 1000) * 2}%</span>
+                  <span className="text-green-400">+{Math.floor((user?.reputation_score || 0) / 1000) * 2}%</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Total APY:</span>
                   <span className="text-yellow-400 font-bold">
-                    {(selectedOption.apy + Math.floor(mockUser.reputation / 1000) * 2).toFixed(1)}%
+                    {(selectedOption.apy + Math.floor((user?.reputation_score || 0) / 1000) * 2).toFixed(1)}%
                   </span>
                 </div>
                 <div className="border-t border-gray-700 pt-3">
@@ -124,7 +142,7 @@ export const StakingCalculator: React.FC = () => {
           <Button
             onClick={handleStake}
             loading={isStaking}
-            disabled={stakingAmount < 100 || stakingAmount > mockUser.tokenBalance}
+            disabled={stakingAmount < 100 || stakingAmount > (user?.trust_tokens || 0)}
             className="w-full flex items-center justify-center space-x-2"
           >
             <Lock className="h-4 w-4" />

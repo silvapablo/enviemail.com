@@ -4,10 +4,11 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { MFAManager } from '../../security/mfaManager';
-import { useSecureStore } from '../../store/secureStore';
+import { useAuth } from '../../hooks/useAuth';
 
 export const MFASetup: React.FC = () => {
-  const { user, securityConfig } = useSecureStore();
+  const { user } = useAuth();
+  const securityConfig = { mfaEnabled: false }; // Placeholder until MFA is properly integrated
   const [step, setStep] = useState<'select' | 'totp' | 'sms' | 'email' | 'backup'>('select');
   const [totpSecret, setTotpSecret] = useState<string>('');
   const [qrCode, setQrCode] = useState<string>('');

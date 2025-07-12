@@ -3,17 +3,18 @@ import { Bell, X, Shield, Mail, TrendingUp, AlertTriangle, CheckCircle, Settings
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { useSecureStore } from '../../store/secureStore';
-import { EncryptionManager } from '../../security/encryption';
+import { useAuth } from '../../hooks/useAuth';
 
 export const NotificationCenter: React.FC = () => {
-  const { 
-    notifications, 
-    unreadCount, 
-    markNotificationRead, 
-    clearNotifications,
-    securityConfig 
-  } = useSecureStore();
+  const { user } = useAuth();
+  
+  // Placeholder data until notification system is properly integrated
+  const notifications: any[] = [];
+  const unreadCount = 0;
+  const markNotificationRead = (id: string) => {};
+  const clearNotifications = () => {};
+  const securityConfig = { encryptionKey: '' };
+  
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'security' | 'transaction' | 'campaign' | 'system'>('all');
 
@@ -49,7 +50,7 @@ export const NotificationCenter: React.FC = () => {
 
   const decryptContent = (encryptedContent: string): string => {
     try {
-      return EncryptionManager.decrypt(encryptedContent, securityConfig.encryptionKey);
+      return encryptedContent; // Simplified until encryption is properly integrated
     } catch {
       return 'Unable to decrypt notification content';
     }
