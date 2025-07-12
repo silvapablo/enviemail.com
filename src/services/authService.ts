@@ -45,81 +45,13 @@ export class AuthService {
         console.log('✅ Existing user logged in:', user)
       }
 
-      // Create Supabase-compatible email format
-      const supabaseEmail = `user-${address.toLowerCase().substring(2)}@emailchain.xyz`
-      
-      // Try to authenticate with Supabase using formatted email
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: supabaseEmail,
-        password: address.toLowerCase()
-      })
-
-      if (signInError) {
-        // Create auth user if doesn't exist (with email confirmation disabled)
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: supabaseEmail,
-          password: address.toLowerCase(),
-          options: {
-            emailRedirectTo: undefined, // Disable email confirmation
-            data: {
-              wallet_address: address,
-              skip_confirmation: true
-            }
-          }
-        })
-        
-        if (signUpError) {
-          // If signup fails due to email confirmation being required, 
-          // we'll use a different approach
-          if (signUpError.message.includes('Email not confirmed') || 
-              signUpError.message.includes('email_not_confirmed')) {
-            
-            // Set user session manually using the database user data
-            console.log('⚠️ Email confirmation required but bypassing for wallet auth')
-            
-            // Store user data locally and mark as authenticated
-            this.currentUser = user
-            localStorage.setItem('emailchain_user', JSON.stringify(user))
-            localStorage.setItem('emailchain_wallet', address)
-            localStorage.setItem('emailchain_auth_bypass', 'true')
-            
-            return { user, address }
-          }
-          
-          throw new Error(`Authentication failed: ${signUpError.message}`)
-        }
-        
-        // If signup was successful, try signing in again
-        if (signUpData.user) {
-          const { error: retryError } = await supabase.auth.signInWithPassword({
-            email: supabaseEmail,
-            password: address.toLowerCase()
-          })
-          
-          if (retryError) {
-            // If still failing due to email confirmation, use bypass method
-            if (retryError.message.includes('Email not confirmed') || 
-                retryError.message.includes('email_not_confirmed')) {
-              
-              console.log('⚠️ Using auth bypass for wallet-based authentication')
-              this.currentUser = user
-              localStorage.setItem('emailchain_user', JSON.stringify(user))
-              localStorage.setItem('emailchain_wallet', address)
-              localStorage.setItem('emailchain_auth_bypass', 'true')
-              
-              return { user, address }
-            }
-            
-            throw new Error(`Authentication retry failed: ${retryError.message}`)
-          }
-        }
-      }
-
+      // Store user session locally (wallet-based authentication)
       this.currentUser = user
-      
-      // Store in localStorage for persistence
       localStorage.setItem('emailchain_user', JSON.stringify(user))
       localStorage.setItem('emailchain_wallet', address)
+      localStorage.setItem('emailchain_authenticated', 'true')
+      
+      console.log('✅ Wallet authentication successful')
 
       return { user, address }
     } catch (error) {
@@ -130,12 +62,12 @@ export class AuthService {
 
   static async disconnectWallet(): Promise<void> {
     try {
-      await supabase.auth.signOut()
       this.currentUser = null
       
       // Clear localStorage
       localStorage.removeItem('emailchain_user')
       localStorage.removeItem('emailchain_wallet')
+      localStorage.removeItem('emailchain_authenticated')
       
       console.log('✅ User disconnected')
     } catch (error) {
@@ -151,65 +83,27 @@ export class AuthService {
     }
 
     try {
-      // Check if we're using auth bypass for wallet authentication
-      const authBypass = localStorage.getItem('emailchain_auth_bypass')
-      if (authBypass === 'true') {
-        const storedUser = localStorage.getItem('emailchain_user')
-        const storedWallet = localStorage.getItem('emailchain_wallet')
-        
-        if (storedUser && storedWallet) {
-          const user = JSON.parse(storedUser)
-          // Verify user still exists in database
-          const dbUser = await DatabaseService.getUserByWallet(storedWallet)
-          if (dbUser) {
-            this.currentUser = dbUser
-            return dbUser
-          } else {
-            // Clear invalid bypass data
-            this.clearStoredData()
-            localStorage.removeItem('emailchain_auth_bypass')
-          }
+      // Check wallet-based authentication
+      const isAuthenticated = localStorage.getItem('emailchain_authenticated')
+      const storedUser = localStorage.getItem('emailchain_user')
+      const storedWallet = localStorage.getItem('emailchain_wallet')
+      
+      if (isAuthenticated === 'true' && storedUser && storedWallet) {
+        const user = JSON.parse(storedUser)
+        // Verify user still exists in database
+        const dbUser = await DatabaseService.getUserByWallet(storedWallet)
+        if (dbUser) {
+          this.currentUser = dbUser
+          // Update stored user data with fresh data
+          localStorage.setItem('emailchain_user', JSON.stringify(dbUser))
+          return dbUser
+        } else {
+          // Clear invalid data
+          this.clearStoredData()
         }
       }
-      
-      // Check Supabase auth
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      
-      if (!authUser) {
-        // Try to restore from localStorage
-        const storedUser = localStorage.getItem('emailchain_user')
-        const storedWallet = localStorage.getItem('emailchain_wallet')
-        
-        if (storedUser && storedWallet) {
-          const user = JSON.parse(storedUser)
-          // Verify user still exists in database
-          const dbUser = await DatabaseService.getUserByWallet(storedWallet)
-          if (dbUser) {
-            this.currentUser = dbUser
-            return dbUser
-          }
-        }
-        return null
-      }
 
-      // Extract wallet address from Supabase email format
-      const emailPrefix = authUser.email?.split('@')[0]
-      const walletAddress = emailPrefix?.startsWith('user-') 
-        ? `0x${emailPrefix.substring(5)}` 
-        : emailPrefix
-        
-      if (!walletAddress) {
-        throw new Error('Invalid user email format')
-      }
-
-      // Get user from database
-      const user = await DatabaseService.getUserByWallet(walletAddress)
-      if (user) {
-        this.currentUser = user
-        localStorage.setItem('emailchain_user', JSON.stringify(user))
-      }
-
-      return user
+      return null
     } catch (error) {
       console.error('Failed to get current user:', error)
       return null
@@ -218,15 +112,11 @@ export class AuthService {
 
   static async isAuthenticated(): Promise<boolean> {
     try {
-      // Check auth bypass first
-      const authBypass = localStorage.getItem('emailchain_auth_bypass')
-      if (authBypass === 'true') {
-        const storedUser = localStorage.getItem('emailchain_user')
-        return !!storedUser
-      }
+      const isAuthenticated = localStorage.getItem('emailchain_authenticated')
+      const storedUser = localStorage.getItem('emailchain_user')
+      const storedWallet = localStorage.getItem('emailchain_wallet')
       
-      const { data: { user } } = await supabase.auth.getUser()
-      return !!user
+      return isAuthenticated === 'true' && !!storedUser && !!storedWallet
     } catch (error) {
       console.error('Auth check failed:', error)
       return false
@@ -276,7 +166,7 @@ export class AuthService {
   static clearStoredData(): void {
     localStorage.removeItem('emailchain_user')
     localStorage.removeItem('emailchain_wallet')
-    localStorage.removeItem('emailchain_auth_bypass')
+    localStorage.removeItem('emailchain_authenticated')
     this.currentUser = null
   }
 }
