@@ -1,17 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Filter } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { CampaignCard } from '../components/campaigns/CampaignCard';
 import { CreateCampaignModal } from '../components/campaigns/CreateCampaignModal';
-import { mockCampaigns } from '../data/mockData';
+import { useAuth } from '../hooks/useAuth';
+import { useData } from '../hooks/useData';
 
 export const Campaigns: React.FC = () => {
+  const { user } = useAuth();
+  const { campaigns, fetchCampaigns } = useData();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const filteredCampaigns = mockCampaigns.filter(campaign => 
+  useEffect(() => {
+    if (user) {
+      fetchCampaigns(user.id);
+    }
+  }, [user, fetchCampaigns]);
+  
+  const filteredCampaigns = campaigns.filter(campaign => 
     statusFilter === 'all' || campaign.status === statusFilter
   );
+
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Campaigns</h1>
+          <p className="text-gray-400">Connect wallet to manage campaigns</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
