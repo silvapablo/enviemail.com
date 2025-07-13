@@ -3,6 +3,7 @@ import { Shield, Lock, Eye, Settings } from 'lucide-react';
 import { SecurityDashboard } from '../components/security/SecurityDashboard';
 import { TransactionHistory } from '../components/security/TransactionHistory';
 import { MFASetup } from '../components/security/MFASetup';
+import { SecuritySettings } from '../components/security/SecuritySettings';
 
 export const Security: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'mfa' | 'settings'>('dashboard');
@@ -23,13 +24,7 @@ export const Security: React.FC = () => {
       case 'mfa':
         return <MFASetup />;
       case 'settings':
-        return (
-          <div className="text-center py-12">
-            <Settings className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">Security Settings</h3>
-            <p className="text-gray-400">Advanced security settings coming soon</p>
-          </div>
-        );
+        return <SecuritySettings />;
       default:
         return <SecurityDashboard />;
     }
