@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
@@ -19,6 +20,21 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          blockchain: ['ethers'],
+          supabase: ['@supabase/supabase-js'],
+          ai: ['openai']
+        }
+      }
+    }
+  },
+  esbuild: {
+    inject: [path.resolve(__dirname, 'src/polyfills/buffer.ts')]
+  },
+  optimizeDeps: {
     rollupOptions: {
       external: [],
       output: {
