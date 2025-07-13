@@ -7,8 +7,20 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     Buffer: 'globalThis.Buffer',
-    process: '{}',
+    process: JSON.stringify({
+      env: {},
+      nextTick: (fn, ...args) => setTimeout(() => fn(...args), 0),
+      version: 'v16.0.0',
+      browser: true,
+      argv: [],
+      platform: 'browser',
+      cwd: () => '/',
+      versions: { node: '16.0.0' }
+    }),
     'process.env': '{}',
+    'process.nextTick': '(fn, ...args) => setTimeout(() => fn(...args), 0)',
+    'process.version': '"v16.0.0"',
+    'process.browser': 'true',
   },
   resolve: {
     alias: {
