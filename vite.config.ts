@@ -7,6 +7,8 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     Buffer: 'globalThis.Buffer',
+    process: '{}',
+    'process.env': '{}',
   },
   resolve: {
     alias: {
