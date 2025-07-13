@@ -30,6 +30,7 @@ export default defineConfig({
       util: './src/polyfills/util.js',
       crypto: "crypto-browserify",
       buffer: "buffer",
+      url: "url",
     }
   },
   build: {
