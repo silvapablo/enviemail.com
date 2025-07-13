@@ -1,14 +1,53 @@
-import React from 'react';
-import { Mail, TrendingUp, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { mockCampaigns } from '../../data/mockData';
+import { Button } from '../ui/Button';
+import { useAuth } from '../../hooks/useAuth';
+import { useData } from '../../hooks/useData';
 
 export const CampaignStatsCard: React.FC = () => {
-  const activeCampaigns = mockCampaigns.filter(c => c.status === 'active').length;
-  const totalCampaigns = mockCampaigns.length;
-  const avgOpenRate = mockCampaigns.reduce((sum, c) => sum + c.openRate, 0) / totalCampaigns;
-  const avgClickRate = mockCampaigns.reduce((sum, c) => sum + c.clickRate, 0) / totalCampaigns;
+  const { user } = useAuth();
+  const { campaigns, fetchCampaigns, loading } = useData();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchCampaigns(user.id);
+    }
+  }, [user, fetchCampaigns]);
+
+  const handleRefresh = async () => {
+    if (!user) return;
+    
+    setIsRefreshing(true);
+    try {
+      await fetchCampaigns(user.id);
+    } catch (error) {
+      console.error('Failed to refresh campaigns:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  if (!user) {
+    return (
+      <Card>
+        <div className="text-center py-8">
+          <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-400">Connect wallet to view campaigns</p>
+        </div>
+      </Card>
+    );
+  }
+
+  const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
+  const totalCampaigns = campaigns.length;
+  const avgOpenRate = totalCampaigns > 0 ? 
+    campaigns.reduce((sum, c) => sum + c.open_rate, 0) / totalCampaigns : 0;
+  const avgClickRate = totalCampaigns > 0 ? 
+    campaigns.reduce((sum, c) => sum + c.click_rate, 0) / totalCampaigns : 0;
+  const totalSpamReports = campaigns.reduce((sum, c) => sum + c.spam_reports, 0);
 
   return (
     <Card>
@@ -17,7 +56,17 @@ export const CampaignStatsCard: React.FC = () => {
           <Mail className="h-5 w-5 text-yellow-400" />
           <h3 className="text-lg font-semibold text-white">Campaign Performance</h3>
         </div>
-        <Badge variant="success">{activeCampaigns} Active</Badge>
+        <div className="flex items-center space-x-2">
+          <Badge variant="success">{activeCampaigns} Active</Badge>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={loading || isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${(loading || isRefreshing) ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -27,7 +76,7 @@ export const CampaignStatsCard: React.FC = () => {
             <div className="text-sm text-gray-400">Total Campaigns</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-400">15</div>
+            <div className="text-2xl font-bold text-green-400">{user.successful_campaigns}</div>
             <div className="text-sm text-gray-400">Successful</div>
           </div>
         </div>
@@ -50,10 +99,17 @@ export const CampaignStatsCard: React.FC = () => {
             <span className="text-sm text-gray-400">Spam Reports</span>
             <span className="text-sm font-medium text-yellow-400 flex items-center">
               <AlertTriangle className="h-4 w-4 mr-1" />
-              23 Total
+              {totalSpamReports} Total
             </span>
           </div>
         </div>
+
+        {totalCampaigns === 0 && (
+          <div className="text-center py-4">
+            <p className="text-gray-400 text-sm">No campaigns yet</p>
+            <p className="text-gray-500 text-xs">Create your first campaign to see stats</p>
+          </div>
+        )}
       </div>
     </Card>
   );
