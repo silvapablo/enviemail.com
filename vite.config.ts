@@ -31,9 +31,6 @@ export default defineConfig({
       }
     }
   },
-  esbuild: {
-    inject: [path.resolve(__dirname, 'src/polyfills/buffer.ts')]
-  },
   optimizeDeps: {
     rollupOptions: {
       external: [],
